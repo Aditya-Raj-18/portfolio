@@ -152,7 +152,6 @@ function startRatingService() {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   ratingAuth = firebase.auth();
   ratingDatabase = firebase.firestore();
-  ratingAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((error) => showRatingStorageError('Sign-in setup', error));
 
   ratingDatabase.collection('portfolioRatings').orderBy('updatedAt', 'desc').onSnapshot((snapshot) => {
     ratingItems = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter((item) => item.name && Number.isInteger(item.rating));
