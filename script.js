@@ -162,15 +162,15 @@ if (googleSignIn) {
   googleSignIn.addEventListener('click', async () => {
     if (!ratingAuth) return;
     googleSignIn.disabled = true;
-    ratingStatus.textContent = 'Opening Google sign-in…';
+    ratingStatus.textContent = 'Redirecting to Google sign-in…';
     try {
       const provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      await ratingAuth.signInWithPopup(provider);
+      await ratingAuth.signInWithRedirect(provider);
     } catch (error) {
       showGoogleSignInError(error);
+      googleSignIn.disabled = false;
     }
-    googleSignIn.disabled = false;
   });
 
   ratingButtons.forEach((button) => button.addEventListener('click', () => setSelectedRating(Number(button.dataset.rating))));
