@@ -142,8 +142,6 @@ function startRatingService() {
   ratingAuth = firebase.auth();
   ratingDatabase = firebase.firestore();
 
-  ratingAuth.getRedirectResult().catch(showGoogleSignInError);
-
   ratingDatabase.collection('portfolioRatings').orderBy('updatedAt', 'desc').onSnapshot((snapshot) => {
     ratingItems = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter((item) => item.name && Number.isInteger(item.rating));
     renderRatings();
@@ -162,15 +160,15 @@ if (googleSignIn) {
   googleSignIn.addEventListener('click', async () => {
     if (!ratingAuth) return;
     googleSignIn.disabled = true;
-    ratingStatus.textContent = 'Redirecting to Google sign-in…';
+    ratingStatus.textContent = 'Opening Google sign-in…';
     try {
       const provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      await ratingAuth.signInWithRedirect(provider);
+      await ratingAuth.signInWithPopup(provider);
     } catch (error) {
       showGoogleSignInError(error);
-      googleSignIn.disabled = false;
     }
+    googleSignIn.disabled = false;
   });
 
   ratingButtons.forEach((button) => button.addEventListener('click', () => setSelectedRating(Number(button.dataset.rating))));
