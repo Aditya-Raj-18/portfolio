@@ -117,7 +117,7 @@ function setRatingUser(user) {
   ratingComment.value = currentRating ? currentRating.comment || '' : '';
   setSelectedRating(currentRating ? currentRating.rating : 0);
   ratingPublish.textContent = currentRating ? 'Update rating' : 'Publish rating';
-  ratingDelete.hidden = !currentRating;
+  if (ratingDelete) ratingDelete.hidden = !currentRating;
   ratingStatus.textContent = 'Your Google profile name will appear with your review.';
 }
 
@@ -126,7 +126,7 @@ function setGuestState() {
   document.querySelector('.rating-login').hidden = false;
   ratingEditor.hidden = true;
   ratingPublish.textContent = 'Publish rating';
-  ratingDelete.hidden = true;
+  if (ratingDelete) ratingDelete.hidden = true;
   ratingStatus.textContent = 'Sign in with Google to leave a verified rating or comment.';
 }
 
@@ -210,7 +210,7 @@ if (googleSignIn) {
     ratingPublish.disabled = false;
   });
 
-  ratingDelete.addEventListener('click', async () => {
+  if (ratingDelete) ratingDelete.addEventListener('click', async () => {
     if (!ratingUser || !ratingDatabase) return;
     const existing = ratingItems.find((item) => item.id === ratingUser.uid);
     if (!existing) return;
