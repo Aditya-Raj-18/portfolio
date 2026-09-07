@@ -1561,6 +1561,36 @@ body.dark {
   font: 800 .73rem 'Plus Jakarta Sans', Arial, sans-serif;
 }
 
+.rating-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rating-actions .rating-publish {
+  margin-top: 0;
+}
+
+.rating-delete {
+  border: 1px solid #ffc0bb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff5f3;
+  color: #b42318;
+  cursor: pointer;
+  font: 800 .72rem 'Plus Jakarta Sans', Arial, sans-serif;
+}
+
+.rating-delete:hover {
+  background: #ffe5e1;
+}
+
+.rating-delete:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
 .rating-entry {
   align-items: flex-start;
 }
@@ -1603,6 +1633,12 @@ body.dark {
   border-color: #435f8c;
   background: #0e1929;
   color: #f0f5ff;
+}
+
+.dark .rating-delete {
+  border-color: #8a3b3b;
+  background: #2a1719;
+  color: #ffb4ab;
 }
 
 .dark .rating-editor > p:not(.rating-signed-in),

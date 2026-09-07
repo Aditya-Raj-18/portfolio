@@ -32,6 +32,7 @@ const ratingEditor = document.querySelector('.rating-editor');
 const ratingButtons = document.querySelectorAll('.rating-star');
 const ratingComment = document.querySelector('#rating-comment');
 const ratingPublish = document.querySelector('.rating-publish');
+const ratingDelete = document.querySelector('.rating-delete');
 const ratingStatus = document.querySelector('.rating-status');
 const ratingSignedIn = document.querySelector('.rating-signed-in');
 const ratingSignout = document.querySelector('.rating-signout');
@@ -115,6 +116,8 @@ function setRatingUser(user) {
   ratingSignedIn.textContent = `Verified as ${user.displayName || user.email}`;
   ratingComment.value = currentRating ? currentRating.comment || '' : '';
   setSelectedRating(currentRating ? currentRating.rating : 0);
+  ratingPublish.textContent = currentRating ? 'Update rating' : 'Publish rating';
+  ratingDelete.hidden = !currentRating;
   ratingStatus.textContent = 'Your Google profile name will appear with your review.';
 }
 
@@ -122,6 +125,8 @@ function setGuestState() {
   ratingUser = null;
   document.querySelector('.rating-login').hidden = false;
   ratingEditor.hidden = true;
+  ratingPublish.textContent = 'Publish rating';
+  ratingDelete.hidden = true;
   ratingStatus.textContent = 'Sign in with Google to leave a verified rating or comment.';
 }
 
@@ -196,6 +201,26 @@ if (googleSignIn) {
       ratingStatus.textContent = 'Your feedback could not be published. Check the Firestore rules in the setup guide.';
     }
     ratingPublish.disabled = false;
+  });
+
+  ratingDelete.addEventListener('click', async () => {
+    if (!ratingUser || !ratingDatabase) return;
+    const existing = ratingItems.find((item) => item.id === ratingUser.uid);
+    if (!existing) return;
+    if (!window.confirm('Delete your rating and comment? This cannot be undone.')) return;
+    ratingDelete.disabled = true;
+    ratingStatus.textContent = 'Deleting your feedback…';
+    try {
+      await ratingDatabase.collection('portfolioRatings').doc(ratingUser.uid).delete();
+      ratingComment.value = '';
+      setSelectedRating(0);
+      ratingDelete.hidden = true;
+      ratingPublish.textContent = 'Publish rating';
+      ratingStatus.textContent = 'Your feedback was deleted.';
+    } catch {
+      ratingStatus.textContent = 'Your feedback could not be deleted. Check the Firestore rules.';
+    }
+    ratingDelete.disabled = false;
   });
 
   ratingSignout.addEventListener('click', () => ratingAuth && ratingAuth.signOut());
