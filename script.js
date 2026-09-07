@@ -136,6 +136,12 @@ function showGoogleSignInError(error) {
   ratingStatus.textContent = `Google sign-in failed (${code}): ${message}`;
 }
 
+function showRatingStorageError(action, error) {
+  const code = error && error.code ? error.code : 'unknown-error';
+  const message = error && error.message ? error.message.replace(/^Firebase:\s*/, '') : 'Please try again.';
+  ratingStatus.textContent = `${action} failed (${code}): ${message}`;
+}
+
 function startRatingService() {
   if (!googleSignIn || !window.firebase || !firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
     ratingStatus.textContent = 'Verified feedback will be available after Firebase is connected.';
@@ -146,13 +152,14 @@ function startRatingService() {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   ratingAuth = firebase.auth();
   ratingDatabase = firebase.firestore();
+  ratingAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((error) => showRatingStorageError('Sign-in setup', error));
 
   ratingDatabase.collection('portfolioRatings').orderBy('updatedAt', 'desc').onSnapshot((snapshot) => {
     ratingItems = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter((item) => item.name && Number.isInteger(item.rating));
     renderRatings();
     if (ratingUser) setRatingUser(ratingUser);
-  }, () => {
-    ratingStatus.textContent = 'Ratings could not be loaded. Check the Firestore rules in the setup guide.';
+  }, (error) => {
+    showRatingStorageError('Ratings could not be loaded', error);
   });
 
   ratingAuth.onAuthStateChanged((user) => {
@@ -197,8 +204,8 @@ if (googleSignIn) {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
       ratingStatus.textContent = 'Thank you. Your verified feedback is now published.';
-    } catch {
-      ratingStatus.textContent = 'Your feedback could not be published. Check the Firestore rules in the setup guide.';
+    } catch (error) {
+      showRatingStorageError('Your feedback could not be published', error);
     }
     ratingPublish.disabled = false;
   });
@@ -217,8 +224,8 @@ if (googleSignIn) {
       ratingDelete.hidden = true;
       ratingPublish.textContent = 'Publish rating';
       ratingStatus.textContent = 'Your feedback was deleted.';
-    } catch {
-      ratingStatus.textContent = 'Your feedback could not be deleted. Check the Firestore rules.';
+    } catch (error) {
+      showRatingStorageError('Your feedback could not be deleted', error);
     }
     ratingDelete.disabled = false;
   });
