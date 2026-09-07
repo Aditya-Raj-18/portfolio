@@ -32,7 +32,6 @@ const ratingEditor = document.querySelector('.rating-editor');
 const ratingButtons = document.querySelectorAll('.rating-star');
 const ratingComment = document.querySelector('#rating-comment');
 const ratingPublish = document.querySelector('.rating-publish');
-const ratingDelete = document.querySelector('.rating-delete');
 const ratingStatus = document.querySelector('.rating-status');
 const ratingSignedIn = document.querySelector('.rating-signed-in');
 const ratingSignout = document.querySelector('.rating-signout');
@@ -112,12 +111,16 @@ function setRatingUser(user) {
   ratingUser = user;
   const currentRating = ratingItems.find((item) => item.id === user.uid);
   document.querySelector('.rating-login').hidden = true;
-  ratingEditor.hidden = false;
   ratingSignedIn.textContent = `Verified as ${user.displayName || user.email}`;
-  ratingComment.value = currentRating ? currentRating.comment || '' : '';
-  setSelectedRating(currentRating ? currentRating.rating : 0);
-  ratingPublish.textContent = currentRating ? 'Update rating' : 'Publish rating';
-  if (ratingDelete) ratingDelete.hidden = !currentRating;
+  if (currentRating) {
+    ratingEditor.hidden = true;
+    ratingStatus.textContent = 'Your verified feedback has already been published.';
+    return;
+  }
+  ratingEditor.hidden = false;
+  ratingComment.value = '';
+  setSelectedRating(0);
+  ratingPublish.textContent = 'Publish rating';
   ratingStatus.textContent = 'Your Google profile name will appear with your review.';
 }
 
@@ -126,7 +129,6 @@ function setGuestState() {
   document.querySelector('.rating-login').hidden = false;
   ratingEditor.hidden = true;
   ratingPublish.textContent = 'Publish rating';
-  if (ratingDelete) ratingDelete.hidden = true;
   ratingStatus.textContent = 'Sign in with Google to leave a verified rating or comment.';
 }
 
@@ -193,40 +195,25 @@ if (googleSignIn) {
     ratingPublish.disabled = true;
     ratingStatus.textContent = 'Publishing your verified feedback…';
     const existing = ratingItems.find((item) => item.id === ratingUser.uid);
+    if (existing) {
+      ratingStatus.textContent = 'Your verified feedback has already been published.';
+      ratingPublish.disabled = false;
+      return;
+    }
     try {
       await ratingDatabase.collection('portfolioRatings').doc(ratingUser.uid).set({
         uid: ratingUser.uid,
         name: ratingUser.displayName || ratingUser.email.split('@')[0],
         rating: selectedRating,
         comment: ratingComment.value.trim(),
-        createdAt: existing && existing.createdAt ? existing.createdAt : firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+      });
       ratingStatus.textContent = 'Thank you. Your verified feedback is now published.';
     } catch (error) {
       showRatingStorageError('Your feedback could not be published', error);
     }
     ratingPublish.disabled = false;
-  });
-
-  if (ratingDelete) ratingDelete.addEventListener('click', async () => {
-    if (!ratingUser || !ratingDatabase) return;
-    const existing = ratingItems.find((item) => item.id === ratingUser.uid);
-    if (!existing) return;
-    if (!window.confirm('Delete your rating and comment? This cannot be undone.')) return;
-    ratingDelete.disabled = true;
-    ratingStatus.textContent = 'Deleting your feedback…';
-    try {
-      await ratingDatabase.collection('portfolioRatings').doc(ratingUser.uid).delete();
-      ratingComment.value = '';
-      setSelectedRating(0);
-      ratingDelete.hidden = true;
-      ratingPublish.textContent = 'Publish rating';
-      ratingStatus.textContent = 'Your feedback was deleted.';
-    } catch (error) {
-      showRatingStorageError('Your feedback could not be deleted', error);
-    }
-    ratingDelete.disabled = false;
   });
 
   ratingSignout.addEventListener('click', () => ratingAuth && ratingAuth.signOut());
