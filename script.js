@@ -125,6 +125,12 @@ function setGuestState() {
   ratingStatus.textContent = 'Sign in with Google to leave a verified rating or comment.';
 }
 
+function showGoogleSignInError(error) {
+  const code = error && error.code ? error.code : 'unknown-error';
+  const message = error && error.message ? error.message.replace(/^Firebase:\s*/, '') : 'Please try again.';
+  ratingStatus.textContent = `Google sign-in failed (${code}): ${message}`;
+}
+
 function startRatingService() {
   if (!googleSignIn || !window.firebase || !firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
     ratingStatus.textContent = 'Verified feedback will be available after Firebase is connected.';
@@ -135,6 +141,8 @@ function startRatingService() {
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   ratingAuth = firebase.auth();
   ratingDatabase = firebase.firestore();
+
+  ratingAuth.getRedirectResult().catch(showGoogleSignInError);
 
   ratingDatabase.collection('portfolioRatings').orderBy('updatedAt', 'desc').onSnapshot((snapshot) => {
     ratingItems = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter((item) => item.name && Number.isInteger(item.rating));
@@ -156,9 +164,11 @@ if (googleSignIn) {
     googleSignIn.disabled = true;
     ratingStatus.textContent = 'Opening Google sign-in…';
     try {
-      await ratingAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await ratingAuth.signInWithPopup(provider);
     } catch (error) {
-      ratingStatus.textContent = error.code === 'auth/popup-closed-by-user' ? 'Google sign-in was cancelled.' : 'Google sign-in could not be completed. Please try again.';
+      showGoogleSignInError(error);
     }
     googleSignIn.disabled = false;
   });
