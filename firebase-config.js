@@ -1,5 +1,5 @@
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBl0-Hod2nj3EAbPUTX60SESfdnN_b_8sQ",
+  apiKey: "AIzaSyBl0-Hod2nj3EAbPUIX60SESfdnN_b_8sQ",
   authDomain: "aditya-portfolio-eacd9.firebaseapp.com",
   projectId: "aditya-portfolio-eacd9",
   storageBucket: "aditya-portfolio-eacd9.firebasestorage.app",
