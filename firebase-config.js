@@ -1,6 +1,6 @@
 
 
-const firebaseConfig = {
+window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBl0-Hod2nj3EAbPUIX60SESfdnN_b_8sQ",
   authDomain: "aditya-portfolio-eacd9.firebaseapp.com",
   projectId: "aditya-portfolio-eacd9",
