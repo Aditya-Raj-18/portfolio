@@ -273,6 +273,20 @@ document.querySelectorAll('[data-helper-question]').forEach((button) => button.a
 helperForm.addEventListener('submit', (event) => { event.preventDefault(); const input = helperForm.querySelector('input'); const question = input.value.trim(); if (!question) return; askPortfolio(question); input.value = ''; });
 
 const themeToggle = document.querySelector('.theme-toggle');
-themeToggle.addEventListener('click', () => { document.body.classList.toggle('dark'); themeToggle.textContent = document.body.classList.contains('dark') ? '☼' : '◐'; });
+function setTheme(theme) {
+  const dark = theme === 'dark';
+  document.body.classList.toggle('dark', dark);
+  themeToggle.textContent = dark ? '☼' : '◐';
+  themeToggle.setAttribute('aria-label', `Switch to ${dark ? 'light' : 'dark'} theme`);
+  themeToggle.setAttribute('aria-pressed', String(dark));
+}
+let savedTheme = null;
+try { savedTheme = localStorage.getItem('portfolio-theme'); } catch {}
+setTheme(savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+themeToggle.addEventListener('click', () => {
+  const theme = document.body.classList.contains('dark') ? 'light' : 'dark';
+  setTheme(theme);
+  try { localStorage.setItem('portfolio-theme', theme); } catch {}
+});
 const progressBar = document.querySelector('.progress-bar');
 window.addEventListener('scroll', () => { const maximum = document.documentElement.scrollHeight - window.innerHeight; progressBar.style.width = `${maximum ? (window.scrollY / maximum) * 100 : 0}%`; }, { passive: true });
